@@ -1,40 +1,16 @@
 #include "modem.h"
 #include <iostream>
 
-
-Modem::Modem() : manufacturer("Unknown"), model("Unknown"), 
-                type(ModemType::DialUp), standard(ConnectionStandard::V32),
-                maxSpeed(0.056), isConnected(false), isPoweredOn(false) {}
+Modem::Modem() : NetworkDevice(), type(ModemType::DialUp), 
+                standard(ConnectionStandard::V32), maxSpeed(0.056), isConnected(false) {}
 
 Modem::Modem(const std::string& manuf, const std::string& mdl, ModemType tp, 
              ConnectionStandard std, double speed) : 
-    manufacturer(manuf), model(mdl), type(tp), standard(std), 
-    maxSpeed(speed), isConnected(false), isPoweredOn(false) {}
-
-Modem::Modem(const Modem& other) : 
-    manufacturer(other.manufacturer), model(other.model), type(other.type),
-    standard(other.standard), maxSpeed(other.maxSpeed), 
-    isConnected(other.isConnected), isPoweredOn(other.isPoweredOn) {}
+    NetworkDevice(manuf, mdl), type(tp), standard(std), 
+    maxSpeed(speed), isConnected(false) {}
 
 Modem::~Modem() {
-    std::cout << "Модем " << manufacturer << " " << model << " выключен и уничтожен." << std::endl;
-}
-
-
-void Modem::setManufacturer(const std::string& manuf) {
-    manufacturer = manuf;
-}
-
-std::string Modem::getManufacturer() const {
-    return manufacturer;
-}
-
-void Modem::setModel(const std::string& mdl) {
-    model = mdl;
-}
-
-std::string Modem::getModel() const {
-    return model;
+    std::cout << "Модем " << getManufacturer() << " " << getModel() << " уничтожен." << std::endl;
 }
 
 void Modem::setType(ModemType tp) {
@@ -90,23 +66,8 @@ bool Modem::getConnectionStatus() const {
     return isConnected;
 }
 
-bool Modem::getPowerStatus() const {
-    return isPoweredOn;
-}
-
-void Modem::powerOn() {
-    isPoweredOn = true;
-    std::cout << "Модем включен." << std::endl;
-}
-
-void Modem::powerOff() {
-    isPoweredOn = false;
-    isConnected = false;
-    std::cout << "Модем выключен." << std::endl;
-}
-
 void Modem::connect() {
-    if (isPoweredOn) {
+    if (getPowerStatus()) {
         isConnected = true;
         std::cout << "Установлено соединение. Скорость: " << maxSpeed << " Мбит/с" << std::endl;
     } else {
@@ -119,33 +80,28 @@ void Modem::disconnect() {
     std::cout << "Соединение разорвано." << std::endl;
 }
 
-Modem& Modem::operator=(const Modem& other) {
-    if (this != &other) {
-        manufacturer = other.manufacturer;
-        model = other.model;
-        type = other.type;
-        standard = other.standard;
-        maxSpeed = other.maxSpeed;
-        isConnected = other.isConnected;
-        isPoweredOn = other.isPoweredOn;
-    }
-    return *this;
+void Modem::powerOn() {
+    NetworkDevice::powerOn();
+    std::cout << "Модем инициализирован и готов к работе." << std::endl;
 }
 
+void Modem::powerOff() {
+    if (isConnected) {
+        disconnect();
+    }
+    NetworkDevice::powerOff();
+}
 
 void Modem::displayInfo() const {
-    std::cout << "=== Информация о модеме ===" << std::endl;
-    std::cout << "Производитель: " << manufacturer << std::endl;
-    std::cout << "Модель: " << model << std::endl;
-    std::cout << "Тип: " << getTypeString() << std::endl;
-    std::cout << "Стандарт: " << getStandardString() << std::endl;
+    NetworkDevice::displayInfo();
+    std::cout << "Тип модема: " << getTypeString() << std::endl;
+    std::cout << "Стандарт связи: " << getStandardString() << std::endl;
     std::cout << "Макс. скорость: " << maxSpeed << " Мбит/с" << std::endl;
-    std::cout << "Состояние питания: " << (isPoweredOn ? "Включен" : "Выключен") << std::endl;
     std::cout << "Состояние соединения: " << (isConnected ? "Установлено" : "Отсутствует") << std::endl;
 }
 
 std::ostream& operator<<(std::ostream& os, const Modem& modem) {
-    os << modem.manufacturer << " " << modem.model << " (" << modem.getTypeString() 
+    os << modem.getManufacturer() << " " << modem.getModel() << " (" << modem.getTypeString() 
        << "), " << modem.getStandardString() << ", " << modem.maxSpeed << " Мбит/с";
     return os;
 }
